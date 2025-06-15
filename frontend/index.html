@@ -1,107 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Video Generator</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: #f4f4f4;
-      color: #333;
-    }
-    header {
-      background-color: #0057ff;
-      color: white;
-      padding: 1em 2em;
-      width: 100%;
-      text-align: center;
-    }
-    form {
-      margin: 2em;
-      padding: 2em;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 500px;
-      width: 100%;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 1em;
-      margin-bottom: 1em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      background-color: #0057ff;
-      color: white;
-      padding: 1em 2em;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .video-output {
-      margin-top: 2em;
-    }
-    footer {
-      margin-top: auto;
-      padding: 1em;
-      background: #eee;
-      width: 100%;
-      text-align: center;
-    }
-  </style>
 </head>
 <body>
-  <header>
-    <h1>AI Video Generator</h1>
-    <p>Type a prompt and generate a video</p>
-  </header>
-  <form id="video-form">
-    <input type="text" id="prompt" placeholder="Enter your prompt here..." required />
-    <button type="submit">Generate Video</button>
-    <div id="status"></div>
-  </form>
-  <div class="video-output" id="video-output"></div>
-  <footer>
-    Built with ❤️ using FastAPI + Gradio + imageio
-  </footer>
+  <h1>AI Video Generator</h1>
+  <input type="text" id="prompt" placeholder="Enter your prompt" />
+  <button onclick="submitPrompt()">Generate</button>
+  <p id="status"></p>
+  <video id="video" controls style="display:none; max-width:100%; margin-top:20px;"></video>
 
   <script>
-    const form = document.getElementById("video-form");
-    const videoOutput = document.getElementById("video-output");
-    const statusText = document.getElementById("status");
-
-    form.addEventListener("submit", async function(e) {
-      e.preventDefault();
+    async function submitPrompt() {
       const prompt = document.getElementById("prompt").value;
-      statusText.textContent = "Generating video... please wait.";
-      videoOutput.innerHTML = "";
+      document.getElementById("status").innerText = "Generating...";
+      document.getElementById("video").style.display = "none";
 
       const response = await fetch("/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt })
       });
 
       const result = await response.json();
-      if (response.ok) {
-        statusText.textContent = "Video generated!";
-        const video = document.createElement("video");
-        video.controls = true;
+      if (result.video_url) {
+        const video = document.getElementById("video");
         video.src = result.video_url;
-        video.width = 320;
-        videoOutput.appendChild(video);
+        video.style.display = "block";
+        document.getElementById("status").innerText = "Done!";
       } else {
-        statusText.textContent = "Error: " + result.detail;
+        document.getElementById("status").innerText = "Error generating video.";
       }
-    });
+    }
   </script>
 </body>
 </html>
